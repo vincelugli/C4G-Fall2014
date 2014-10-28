@@ -1,8 +1,5 @@
 if (Meteor.isClient) {
 
-
-
-
   Template.MapTemp.rendered = function(){
     var mapRendered = false;
     var pointsRenderd = false;
@@ -14,7 +11,8 @@ if (Meteor.isClient) {
     });
     context.add(surface);
 
-
+    var directionsDisplay;
+    var directionsService;
     
     surface.on("click", function() {
       console.log("LOad callback");
@@ -35,6 +33,14 @@ if (Meteor.isClient) {
               };
               map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions); 
               map.setCenter(new google.maps.LatLng(33.7550, -84.3900));
+
+              directionsDisplay = new google.maps.DirectionsRenderer();
+              directionsService = new google.maps.DirectionsService();
+              var renderOptions = {
+                "preserveViewport": true
+              };
+              directionsDisplay.setOptions(renderOptions);
+              directionsDisplay.setMap(map);
           }
         );
         navigator.geolocation.getCurrentPosition(setMapCenter);
@@ -43,6 +49,10 @@ if (Meteor.isClient) {
       else if((!pointsRenderd) && mapRendered) {
         pointsRenderd = true;
         var pts = Points.find().fetch();
+
+        var markerArray = [];
+        var currLocation = null;        
+
         for(var i = 0; i < pts.length; i++){
           var pt = pts[i];
 
@@ -51,9 +61,38 @@ if (Meteor.isClient) {
           var marker = new google.maps.Marker({
             position: new google.maps.LatLng(pt.attributes.latitude, pt.attributes.longitude),
             map: map,
+            animation: google.maps.Animation.DROP,
             title: pt.attributes.STORE_NAME,
             icon: isTF1 ? "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|0000FF" : null 
           });
+
+          markerArray.push(marker);
+
+          (function () {
+            var currMarker = markerArray[i];
+
+            google.maps.event.addListener(marker, 'click', function () {
+              if (currLocation != null) {
+                currLocation.setVisible(true);
+              }
+              currLocation = currMarker;
+              currLocation.setVisible(false);
+
+              var selectedMode = google.maps.TravelMode.DRIVING; // document.getElementById("mode").value;
+
+              var request = {
+                origin: map.getCenter(),
+                destination: currMarker.getPosition(),
+                travelMode: selectedMode
+              };
+              directionsService.route(request, function(result, status) {
+                if (status == google.maps.DirectionsStatus.OK) {
+                  console.log(result);
+                  directionsDisplay.setDirections(result);
+                }
+              });
+            })
+          })();
 
         }
       }
