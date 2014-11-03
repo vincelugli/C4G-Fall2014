@@ -6,7 +6,6 @@ binary-heap@1.0.0
 blaze-tools@1.0.0
 blaze@2.0.0
 boilerplate-generator@1.0.0
-bootstrap@1.0.1
 callback-hook@1.0.0
 check@1.0.0
 ctl-helper@1.0.3
@@ -40,6 +39,8 @@ minifiers@1.1.0
 minimongo@1.0.3
 mobile-status-bar@1.0.0
 mongo@1.0.5
+mrt:bootstrap-3@0.3.8
+mrt:bootstrap-slate@0.0.1
 mrt:googlemaps@0.0.2
 observe-sequence@1.0.2
 ordered-dict@1.0.0

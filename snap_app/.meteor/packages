@@ -7,8 +7,8 @@ meteor-platform
 autopublish
 insecure
 mrt:googlemaps
-bootstrap
 iron:router
-jquery
 http
+mrt:bootstrap-3
+mrt:bootstrap-slate
 

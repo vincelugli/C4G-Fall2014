@@ -15,6 +15,7 @@ if(Meteor.isClient){
 				  'language': 'en' //optional
 				}, 
 				function(){
+				console.log("Starting map init function");
 				  var mapOptions = {
 				      zoom: 13,
 				      mapTypeId: google.maps.MapTypeId.MAP
