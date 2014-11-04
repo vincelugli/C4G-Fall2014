@@ -1,12 +1,13 @@
 if(Meteor.isClient){
-	
 	var mapRendered = false;
 
 	Template.map.rendered = function(){
 		
 		console.log("running map script");
 		var locationName = decodeURIComponent(Router.current().data()["location"]);
-		console.log("Location: "+locationName);
+		var searchLat = decodeURIComponent(Router.current().data()["latitude"]);
+		var searchLng = decodeURIComponent(Router.current().data()["longitude"]);
+		console.log("Lat long "+searchLat + ", "+searchLng);
 		if(!mapRendered){
 			GoogleMaps.init(
 				{
@@ -20,8 +21,13 @@ if(Meteor.isClient){
 				      zoom: 13,
 				      mapTypeId: google.maps.MapTypeId.MAP
 				  };
-				  gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions); 
-				  gmap.setCenter(new google.maps.LatLng(33.7550, -84.3900));
+				  gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+				  var p = Session.get("pos");
+				  if(p){
+
+				  	gmap.setCenter(new google.maps.LatLng(p.latitude, p.longitude));
+				  	
+				  } 
 
 				  directionsDisplay = new google.maps.DirectionsRenderer();
 				  directionsService = new google.maps.DirectionsService();
@@ -33,10 +39,16 @@ if(Meteor.isClient){
 				}
 			);
 			//debugger;
+			/*
 			if(locationName !== 'undefined'){//Weird IR thing??
 				//manually entered location
 				console.log("Manually locating");
 				searchAddress(locationName);
+			}
+			*/
+			if(searchLat !== 'undefined'){
+				var pos = {coords: {latitude: searchLat, longitude: searchLng}};
+				setMapCenter(pos);
 			}
 			else{
 				//auto-locate
@@ -49,7 +61,8 @@ if(Meteor.isClient){
 
 	function setMapCenter(position){
 		console.log("Setting center");
-		gmap.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+		//gmap.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+		Session.set("pos", {latitude: position.coords.latitude, longitude: position.coords.longitude});
 	}
 
 	function searchAddress(addrString){
@@ -66,3 +79,13 @@ if(Meteor.isClient){
 		alert("Not implemented (see comments)");
 	}
 }
+
+Template.map.helpers({
+	'pos' : function(){
+		console.log("positioning function")
+		if(gmap){
+			var pos = Session.get("pos");
+			gmap.setCenter(new google.maps.LatLng(pos.latitude, pos.longitude));
+		}
+	},
+});

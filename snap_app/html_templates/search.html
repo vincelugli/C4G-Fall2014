@@ -1,0 +1,17 @@
+<template name="search">
+<div class="form-group container">
+	<div class="col-lg-10">
+        <input type="text" class="form-control" id="inputLocation" placeholder="Enter your location" data-emoji_font="true" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Segoe UI Emoji', 'Segoe UI Symbol', Symbola, EmojiSymbols !important;">
+	</div>
+	<button class="search_btn btn btn-primary">Search</button>
+</div>
+
+<div class="jumbotron">
+	<div class="list-group" id="resultsBox">
+		{{#each results}}
+			<a class="search_result list-group-item">{{formatted_address}}</a>
+		{{/each}}
+	</div>
+</div>
+</template>
+
