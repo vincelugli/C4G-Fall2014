@@ -3,6 +3,11 @@ Session.set("resultsArr", [])
 Template.search.events({
 	'click .search_btn' : searchLocations,
 
+	'keydown .form-control' : function(event){
+		//console.log(event.which);
+		if(event.which === 13) searchLocations();
+	},
+
 	'click .search_result' : function(){
 		//debugger;
 		Router.go("map", {}, {query: {latitude: this.geometry.location.lat, longitude: this.geometry.location.lng}});
