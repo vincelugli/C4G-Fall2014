@@ -24,6 +24,12 @@ if (Meteor.isClient) {
       console.log("QUERY " + query);
       return query;
     }});
+    this.route('directions', {path: '/directions', data: function(){
+      var query = this.params.query;
+      console.log("directions query");
+      console.log(query);
+      return query;
+    }});
 	});
 }
 

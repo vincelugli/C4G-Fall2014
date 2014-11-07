@@ -67,7 +67,7 @@ if(Meteor.isClient){
 							'<div id="bodyContent">'+
 							'<p><b>' + pt.attributes.STORE_NAME + '</b></p>'+
 							'<p>Store Hours: [STORE HOURS HERE]</p>' +
-							'<p>Get Directions</p>'+
+							'<button class="dir_btn btn btn-default"\>Get Directions</button>'+
 							'</div>'+
 							'</div>';
 
@@ -83,6 +83,7 @@ if(Meteor.isClient){
 			            	var currMarker = markerArray[i];
 			            	var currInfoWindow = infoWindowArray[i];
 			            	google.maps.event.addListener(marker, 'click', function () {
+			            		Session.set("destPos", {name: this.title, latitude: this.position.k, longitude: this.position.B});
 			            		currInfoWindow.open(gmap, currMarker);
 								if (currLocation != null) {
 									currLocation.setVisible(true);
@@ -164,6 +165,7 @@ if(Meteor.isClient){
 	function getStoreHours(error, result) {
 		console.log("got here?");
 	}
+
 }
 
 Template.map.helpers({
@@ -175,3 +177,22 @@ Template.map.helpers({
 		}
 	},
 });
+
+Template.map.events({
+	'click .dir_btn': function() { 
+		//debugger; 
+		var pos = Session.get("pos"); //current position
+		var dest = Session.get("destPos"); //destination position
+		Router.go("directions", {}, {query:{fromLatitude: pos.latitude, toLatitude: dest.latitude, fromLongitude:pos.longitude, toLongitude:dest.longitude, storeName:dest.name}});
+	},
+});
+
+/*
+function getDirections(){
+	console.log("Get directions");
+	console.log(this);
+	debugger;
+	//Router.go("directions", {}, {query: {storeName: store, latitude: lat, longitude: lng}});
+}
+
+*/
