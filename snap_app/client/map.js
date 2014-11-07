@@ -62,16 +62,18 @@ if(Meteor.isClient){
 						});
 
 						var contentString = '<div id="content">'+
-							'<h1 id="firstHeading" class="firstHeading">' + pt.attributes.STORE_NAME + '</h1>'+
+							'<div id="siteNotice">'+
+							'</div>'+
+							'<div id="bodyContent">'+
+							'<p><b>' + pt.attributes.STORE_NAME + '</b></p>'+
+							'<p>Store Hours: [STORE HOURS HERE]</p>' +
+							'<p>Get Directions</p>'+
+							'</div>'+
 							'</div>';
 
 						var infoWindow = new google.maps.InfoWindow({
 							maxWidth: 320,
-							content: pt.attributes.STORE_NAME + 
-								"\n" + 
-								"GET DIRECTIONS" + 
-								"\n" + 
-								"Testing!!!"
+							content: contentString
 						})
 
 						markerArray.push(marker);
@@ -104,6 +106,8 @@ if(Meteor.isClient){
 								});
 							});
 						})();
+
+						placeSearch(pt.attributes.STORE_NAME, pt.attributes.latitude, pt.attributes.longitude);
 			      	}
 				}
 			);
@@ -146,6 +150,19 @@ if(Meteor.isClient){
 		//Wrong context, gmap variable doesn't exist.
 		//probably fix with Session, but I'm too lazy right now
 		alert("Not implemented (see comments)");
+	}
+
+	function placeSearch(storeName, lat, lng) {
+		var key = 'AIzaSyCRFZgO_pGDpo4PKnxSjC0Pch-DuE3z9qM';
+		var queryUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + 
+			lat + "," + lng + 
+			"rankby=distance&" + 
+			"name=" + storeName;
+		HTTP.get(queryUrl, {}, getStoreHours);
+	}
+
+	function getStoreHours(error, result) {
+		console.log("got here?");
 	}
 }
 
