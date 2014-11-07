@@ -107,7 +107,7 @@ if(Meteor.isClient){
 							});
 						})();
 
-						placeSearch(pt.attributes.STORE_NAME, pt.attributes.latitude, pt.attributes.longitude);
+						// placeSearch(pt.attributes.STORE_NAME, pt.attributes.latitude, pt.attributes.longitude);
 			      	}
 				}
 			);
