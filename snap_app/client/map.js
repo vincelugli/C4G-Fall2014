@@ -1,4 +1,4 @@
-if(Meteor.isClient){
+// if(Meteor.isClient){
 	var mapRendered = false;
 
 	Template.map.rendered = function(){
@@ -23,8 +23,8 @@ if(Meteor.isClient){
 					};
 					gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 					var p = Session.get("pos");
-					var center = new google.maps.LatLng(p.latitude, p.longitude);
 					if(p){
+						var center = new google.maps.LatLng(p.latitude, p.longitude);
 
 						gmap.setCenter(center);
 						
@@ -157,16 +157,17 @@ if(Meteor.isClient){
 		var key = 'AIzaSyCRFZgO_pGDpo4PKnxSjC0Pch-DuE3z9qM';
 		var queryUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + 
 			lat + "," + lng + 
-			"rankby=distance&" + 
-			"name=" + storeName;
-		HTTP.get(queryUrl, {}, getStoreHours);
+			"&rankby=distance&" + 
+			"name=" + encodeURIComponent(storeName) +
+			"&key=" + key;
+		HTTP.get(queryUrl, {headers: {"Access-Control-Allow-Origin": "*"}}, getStoreHours);
 	}
 
 	function getStoreHours(error, result) {
 		console.log("got here?");
 	}
 
-}
+// }
 
 Template.map.helpers({
 	'pos' : function(){
