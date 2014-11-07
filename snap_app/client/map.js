@@ -16,26 +16,95 @@ if(Meteor.isClient){
 				  'language': 'en' //optional
 				}, 
 				function(){
-				console.log("Starting map init function");
-				  var mapOptions = {
-				      zoom: 13,
-				      mapTypeId: google.maps.MapTypeId.MAP
-				  };
-				  gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-				  var p = Session.get("pos");
-				  if(p){
+					console.log("Starting map init function");
+					var mapOptions = {
+					  zoom: 13,
+					  mapTypeId: google.maps.MapTypeId.MAP
+					};
+					gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+					var p = Session.get("pos");
+					var center = new google.maps.LatLng(p.latitude, p.longitude);
+					if(p){
 
-				  	gmap.setCenter(new google.maps.LatLng(p.latitude, p.longitude));
-				  	
-				  } 
+						gmap.setCenter(center);
+						
+					} 
 
-				  directionsDisplay = new google.maps.DirectionsRenderer();
-				  directionsService = new google.maps.DirectionsService();
-				  var renderOptions = {
-				    "preserveViewport": true
-				  };
-				  directionsDisplay.setOptions(renderOptions);
-				  directionsDisplay.setMap(gmap);
+					var marker = new google.maps.Marker({
+						position: center,
+						map: gmap
+					});
+
+					directionsDisplay = new google.maps.DirectionsRenderer();
+					directionsService = new google.maps.DirectionsService();
+					var renderOptions = {
+						"preserveViewport": true
+					};
+					directionsDisplay.setOptions(renderOptions);
+					directionsDisplay.setMap(gmap);
+
+				    var markerArray = [];
+				    var infoWindowArray = [];
+				    var currLocation = null; 
+				    var currActiveWindow = null;   
+					var pts = Points.find().fetch();
+
+					for(var i = 0; i < pts.length; i++){
+						var pt = pts[i];
+
+						var isTF1 = (TwoForOne.find({address: pt.attributes.ADDRESS}).count() >  0);
+
+						var marker = new google.maps.Marker({
+							position: new google.maps.LatLng(pt.attributes.latitude, pt.attributes.longitude),
+							map: gmap,
+							animation: google.maps.Animation.DROP,
+							title: pt.attributes.STORE_NAME
+						});
+
+						var contentString = '<div id="content">'+
+							'<h1 id="firstHeading" class="firstHeading">' + pt.attributes.STORE_NAME + '</h1>'+
+							'</div>';
+
+						var infoWindow = new google.maps.InfoWindow({
+							maxWidth: 320,
+							content: pt.attributes.STORE_NAME + 
+								"\n" + 
+								"GET DIRECTIONS" + 
+								"\n" + 
+								"Testing!!!"
+						})
+
+						markerArray.push(marker);
+						infoWindowArray.push(infoWindow);
+
+						(function () {
+			            	var currMarker = markerArray[i];
+			            	var currInfoWindow = infoWindowArray[i];
+			            	google.maps.event.addListener(marker, 'click', function () {
+			            		currInfoWindow.open(gmap, currMarker);
+								if (currLocation != null) {
+									currLocation.setVisible(true);
+									currActiveWindow.close();
+								}
+								currLocation = currMarker;
+								currActiveWindow = currInfoWindow;
+								currLocation.setVisible(false);
+
+								var selectedMode = google.maps.TravelMode.DRIVING; // document.getElementById("mode").value;
+
+								var request = {
+									origin: center,
+									destination: currMarker.getPosition(),
+									travelMode: selectedMode
+								};
+								directionsService.route(request, function(result, status) {
+									if (status == google.maps.DirectionsStatus.OK) {
+										directionsDisplay.setDirections(result);
+									}
+								});
+							});
+						})();
+			      	}
 				}
 			);
 			//debugger;
