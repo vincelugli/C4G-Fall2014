@@ -10,10 +10,11 @@ Template.map.rendered = function(){
 	console.log("Lat long "+searchLat + ", "+searchLng);
 
 	var mapDiv = document.createElement("div");
-	mapDiv.style.height = "100%";
-	mapDiv.style.width = "100%";
-	mapDiv.style.position = "absolute";
-	mapDiv.id = "map-canvas";
+	//mapDiv.style.height = "100%";
+	//mapDiv.style.width = "100%";
+	mapDiv.classname="span12";
+	//mapDiv.style.position = "absolute";
+	mapDiv.id = "map_canvas";
 	document.getElementById("outer").appendChild(mapDiv);
 
 
@@ -67,9 +68,9 @@ function MAP_INIT_WRAPPER(){
 			console.log("Starting map init function");
 			var mapOptions = {
 			  zoom: 13,
-			  mapTypeId: google.maps.MapTypeId.MAP
+			  mapTypeId: google.maps.MapTypeId.ROADMAP
 			};
-			gmap = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+			gmap = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 			var p = Session.get("pos");
 			if(p){
 				var center = new google.maps.LatLng(p.latitude, p.longitude);
