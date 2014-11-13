@@ -113,7 +113,7 @@ function MAP_INIT_WRAPPER(){
 					'</div>'+
 					'<div id="bodyContent">'+
 					'<p><b>' + pt.attributes.STORE_NAME + '</b></p>'+
-					'<p>Store Hours: [STORE HOURS HERE]</p>' +
+					'<p id="storeHours">Store Hours: [STORE HOURS HERE]</p>' +
 					'<button class="dir_btn btn btn-default"\>Get Directions</button>'+
 					'</div>'+
 					'</div>';
@@ -153,6 +153,11 @@ function MAP_INIT_WRAPPER(){
 								directionsDisplay.setDirections(result);
 							}
 						});
+						//placeSearch(this.title, this.position.k, this.position.B);
+						Meteor.call("checkStoreHours",{storeName: this.title, lat: this.position.k, lng: this.position.B}, function(error, res){
+							console.log(res);
+							//TODO - not getting results (because of name field)
+						});
 					});
 				})();
 
@@ -190,11 +195,12 @@ function placeSearch(storeName, lat, lng) {
 		"&rankby=distance&" + 
 		"name=" + encodeURIComponent(storeName) +
 		"&key=" + key;
-	HTTP.get(queryUrl, {headers: {"Access-Control-Allow-Origin": "*"}}, getStoreHours);
+	HTTP.get(queryUrl, getStoreHours);
 }
 
 function getStoreHours(error, result) {
 	console.log("got here?");
+	debugger;
 }
 
 Template.map.helpers({
@@ -215,3 +221,5 @@ Template.map.events({
 		Router.go("directions", {}, {query:{fromLatitude: pos.latitude, toLatitude: dest.latitude, fromLongitude:pos.longitude, toLongitude:dest.longitude, storeName:dest.name}});
 	},
 });
+
+

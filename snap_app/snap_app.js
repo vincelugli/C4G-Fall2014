@@ -53,4 +53,20 @@ if (Meteor.isServer) {
     
     // code to run on server at startup
   });
+  Meteor.methods({
+    checkStoreHours: function(obj){
+      var key = 'AIzaSyCRFZgO_pGDpo4PKnxSjC0Pch-DuE3z9qM';
+      var queryUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + 
+      obj.lat + "," + obj.lng + 
+      "&rankby=distance&" + 
+      "name=" + encodeURIComponent(obj.storeName) +
+      "&key=" + key;
+      console.log(queryUrl);
+      this.unblock();
+      var result = HTTP.get(queryUrl);
+      //console.log(results);
+      return result;
+    },
+  });
 }
+
