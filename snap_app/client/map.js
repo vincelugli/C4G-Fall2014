@@ -167,8 +167,26 @@ function MAP_INIT_WRAPPER(){
 							}
 						});
 						//placeSearch(this.title, this.position.k, this.position.B);
-						Meteor.call("checkStoreHours",{storeName: this.title, lat: this.position.k, lng: this.position.B}, function(error, res){
+						Meteor.call("checkStoreHours",{storeName: this.title.split(" ")[0], lat: this.position.k, lng: this.position.B}, function(error, res){
 							console.log(res);
+							if(res){
+								var bestResult = res.data.results[0];
+								var hoursText = document.getElementById("storeHours");
+								if(bestResult && bestResult.opening_hours){
+									if(bestResult.opening_hours.open_now){
+										hoursText.innerText = "Open Now";
+										hoursText.style.color = "green";
+									}
+									else{
+										hoursText.innerText = "Closed";
+										hoursText.style.color = "red";
+									}
+								}
+								else{
+									hoursText.innerText = "Couldn't get store hours";
+								}
+								
+							}
 							//TODO - not getting results (because of name field)
 						});
 					});
