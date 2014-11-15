@@ -15,6 +15,19 @@ Template.map.rendered = function(){
 	mapDiv.classname="span12";
 	//mapDiv.style.position = "absolute";
 	mapDiv.id = "map_canvas";
+
+	var hdr = document.getElementById("HEADER"), ftr = document.getElementById("FOOTER");
+
+	var body = document.body,
+    html = document.documentElement;
+
+	var height = Math.max( body.scrollHeight, body.offsetHeight, 
+                       html.clientHeight, html.scrollHeight, html.offsetHeight );
+	//http://stackoverflow.com/questions/1145850/how-to-get-height-of-entire-document-with-javascript
+
+	height -= (hdr.clientHeight + ftr.clientHeight + (2 * 22));//subtract to allow for header, footer, and two padding areas
+	mapDiv.style.height = height+"px";
+
 	document.getElementById("outer").appendChild(mapDiv);
 
 
