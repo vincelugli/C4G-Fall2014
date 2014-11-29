@@ -107,25 +107,26 @@ function MAP_INIT_WRAPPER(){
 		    var infoWindowArray = [];
 		    var currLocation = null; 
 		    var currActiveWindow = null;   
-			var pts = Points.find().fetch();
+			var pts = Stores.find().fetch();
 
 			for(var i = 0; i < pts.length; i++){
 				var pt = pts[i];
 
-				var isTF1 = (TwoForOne.find({address: pt.attributes.ADDRESS}).count() >  0);
+				
 
 				var marker = new google.maps.Marker({
-					position: new google.maps.LatLng(pt.attributes.latitude, pt.attributes.longitude),
+					position: new google.maps.LatLng(pt.geolocation.latitude, pt.geolocation.longitude),
 					map: gmap,
 					animation: google.maps.Animation.DROP,
-					title: pt.attributes.STORE_NAME
+					title: pt.storeName,
+					icon: pt.is2for1 ? "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|0000FF" : null
 				});
 
 				var contentString = '<div id="content">'+
 					'<div id="siteNotice">'+
 					'</div>'+
 					'<div id="bodyContent">'+
-					'<p><b>' + pt.attributes.STORE_NAME + '</b></p>'+
+					'<p><b>' + pt.storeName + '</b></p>'+
 					'<p id="storeHours">Store Hours: [STORE HOURS HERE]</p>' +
 					'<button class="dir_btn btn btn-default"\>Get Directions</button>'+
 					'</div>'+
@@ -187,12 +188,9 @@ function MAP_INIT_WRAPPER(){
 								}
 								
 							}
-							//TODO - not getting results (because of name field)
 						});
 					});
 				})();
-
-				// placeSearch(pt.attributes.STORE_NAME, pt.attributes.latitude, pt.attributes.longitude);
 	      	}
 		}
 	);
@@ -200,8 +198,9 @@ function MAP_INIT_WRAPPER(){
 function setMapCenter(position){
 	console.log("Setting center");
 	debugger;
-	if(gmap)
+	if(gmap){
 		gmap.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+	}
 	Session.set("pos", {latitude: position.coords.latitude, longitude: position.coords.longitude});
 }
 

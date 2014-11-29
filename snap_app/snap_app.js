@@ -1,5 +1,12 @@
-Points = new Mongo.Collection("points");
-TwoForOne = new Mongo.Collection("twoForOne");
+//Points = new Mongo.Collection("points");
+//TwoForOne = new Mongo.Collection("twoForOne");
+
+
+Stores = new Mongo.Collection("stores");
+/*
+Stores schema: MongoID, Geolocation (lat, long), address1, address 2, city, state, zip5, zip4, county, snap objectID
+*/
+Meta = new Mongo.Collection("meta");
 
 if (Meteor.isClient) {
   // counter starts at 0
@@ -35,22 +42,38 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
   Meteor.startup(function () {
-    var result = HTTP.get("http://snap-load-balancer-244858692.us-east-1.elb.amazonaws.com/ArcGIS/rest/services/retailer/MapServer/find?f=json&searchText=Atlanta&layers=0");
-    var items = JSON.parse(result.content).results;
-    //console.log(result);
-    if (Points.find().count() === 0){
+    var SEARCH_CITY = "Atlanta"
+    console.log("Server Startup");
+    if (Stores.find().count() === 0){ //TODO - repopulate on schedule
+      var result = HTTP.get("http://snap-load-balancer-244858692.us-east-1.elb.amazonaws.com/ArcGIS/rest/services/retailer/MapServer/find?f=json&searchText="+SEARCH_CITY+"&layers=0");
+      var items = JSON.parse(result.content).results;
       console.log("Repopulating database");
-      Points.remove({});
+      Stores.remove({});
       for(var i = 0; i < items.length; i++){
-        Points.insert(items[i]);
+        if(items[i].foundFieldName === "CITY"){ //Only insert search results where "Atlanta" refers to City
+          //MongoID, Geolocation (lat, long), address1, address 2, city, state, zip5, zip4, county, snap objectID
+          var store = items[i].attributes;
+          var storeObj = {
+            storeName: store.STORE_NAME,
+            geolocation: {
+              longitude: store.longitude,
+              latitude: store.latitude
+            },
+            address1: store.ADDRESS,
+            address2: store.ADDRESS2 == "Null"? "":store.ADDRESS2,
+            city: store.CITY,
+            state: store.STATE,
+            zip5: store.ZIP5, 
+            zip4: store.zip4 == "Null"?"":store.zip4,
+            county: store.County,
+            SNAPobjectId: store.OBJECTID,
+            is2for1: false, //TODO - when updating, cache true values, don't change here
+          };
+          Stores.insert(storeObj);
+          
+        }
       }  
     }
-
-    if(TwoForOne.find().count() === 0){
-      TwoForOne.insert({address: "86 5th St NW"});
-      TwoForOne.insert({address: "950 W PEACHTREE ST NW"});
-    }
-    
     // code to run on server at startup
   });
   Meteor.methods({
