@@ -1,6 +1,11 @@
 
 var mapRendered = false;
 gmap = undefined;
+var subscriptionHandle = null;
+var center = null;
+var markerArray = [];
+var infoWindowArray = [];
+
 Template.map.rendered = function(){
 	
 	console.log("running map script");
@@ -57,7 +62,7 @@ Template.map.rendered = function(){
 
 	if(/*!mapRendered*/ true){
 		//alert("RENDERING MAP");
-		MAP_INIT_WRAPPER();
+		// MAP_INIT_WRAPPER();
 		
 	}
 	else{
@@ -68,9 +73,17 @@ Template.map.rendered = function(){
 
 };
 
-
 function MAP_INIT_WRAPPER(){
-	console.log("MAP INIT WRAPPER");
+	if (subscriptionHandle) {
+		subscriptionHandle.stop();
+	}
+
+	// Might need to wait until this is ready to get the proper data. Currently working though.
+
+	// setTimeout(function () {
+	subscriptionHandle = Meteor.subscribe("stores", parseFloat(Session.get("pos").latitude), parseFloat(Session.get("pos").longitude), parseInt(document.getElementById("radius").value));
+	// }, 1000);
+	
 	GoogleMaps.init(
 		{
 		  'sensor': true, //optional
@@ -86,7 +99,7 @@ function MAP_INIT_WRAPPER(){
 			gmap = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 			var p = Session.get("pos");
 			if(p){
-				var center = new google.maps.LatLng(p.latitude, p.longitude);
+				center = new google.maps.LatLng(p.latitude, p.longitude);
 				gmap.setCenter(center);
 			} 
 
@@ -103,98 +116,108 @@ function MAP_INIT_WRAPPER(){
 			directionsDisplay.setOptions(renderOptions);
 			directionsDisplay.setMap(gmap);
 
-		    var markerArray = [];
-		    var infoWindowArray = [];
-		    var currLocation = null; 
-		    var currActiveWindow = null;   
-			var pts = Stores.find().fetch();
-
-			for(var i = 0; i < pts.length; i++){
-				var pt = pts[i];
-
-				
-
-				var marker = new google.maps.Marker({
-					position: new google.maps.LatLng(pt.geolocation.latitude, pt.geolocation.longitude),
-					map: gmap,
-					animation: google.maps.Animation.DROP,
-					title: pt.storeName,
-					icon: pt.is2for1 ? "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|0000FF" : null
-				});
-
-				var contentString = '<div id="content">'+
-					'<div id="siteNotice">'+
-					'</div>'+
-					'<div id="bodyContent">'+
-					'<p><b>' + pt.storeName + '</b></p>'+
-					'<p id="storeHours">Store Hours: [STORE HOURS HERE]</p>' +
-					'<button class="dir_btn btn btn-default"\>Get Directions</button>'+
-					'</div>'+
-					'</div>';
-
-				var infoWindow = new google.maps.InfoWindow({
-					maxWidth: 320,
-					content: contentString
-				});
-
-				markerArray.push(marker);
-				infoWindowArray.push(infoWindow);
-
-				(function () {
-					mapRendered = true;
-	            	var currMarker = markerArray[i];
-	            	var currInfoWindow = infoWindowArray[i];
-	            	google.maps.event.addListener(marker, 'click', function () {
-	            		Session.set("destPos", {name: this.title, latitude: this.position.k, longitude: this.position.B});
-	            		currInfoWindow.open(gmap, currMarker);
-						if (currLocation != null) {
-							currLocation.setVisible(true);
-							currActiveWindow.close();
-						}
-						currLocation = currMarker;
-						currActiveWindow = currInfoWindow;
-						currLocation.setVisible(false);
-
-						var selectedMode = google.maps.TravelMode.DRIVING; // document.getElementById("mode").value;
-
-						var request = {
-							origin: center,
-							destination: currMarker.getPosition(),
-							travelMode: selectedMode
-						};
-						directionsService.route(request, function(result, status) {
-							if (status == google.maps.DirectionsStatus.OK) {
-								directionsDisplay.setDirections(result);
-							}
-						});
-						//placeSearch(this.title, this.position.k, this.position.B);
-						Meteor.call("checkStoreHours",{storeName: this.title.split(" ")[0], lat: this.position.k, lng: this.position.B}, function(error, res){
-							console.log(res);
-							if(res){
-								var bestResult = res.data.results[0];
-								var hoursText = document.getElementById("storeHours");
-								if(bestResult && bestResult.opening_hours){
-									if(bestResult.opening_hours.open_now){
-										hoursText.innerText = "Open Now";
-										hoursText.style.color = "green";
-									}
-									else{
-										hoursText.innerText = "Closed";
-										hoursText.style.color = "red";
-									}
-								}
-								else{
-									hoursText.innerText = "Couldn't get store hours";
-								}
-								
-							}
-						});
-					});
-				})();
-	      	}
+		    setMarkers();
 		}
 	);
 }
+
+function clearMarkers() {
+	for (var i = 0; i < markerArray.length; i++) {
+		markerArray[i].setMap(null);
+	}
+}
+
+function setMarkers() {
+    var currLocation = null; 
+    var currActiveWindow = null;
+	var pts = Stores.find().fetch();
+	clearMarkers();
+	markerArray = [];
+	infoWindowArray = [];
+
+	for(var i = 0; i < pts.length; i++){
+		var pt = pts[i];
+
+		var marker = new google.maps.Marker({
+			position: new google.maps.LatLng(pt.geolocation.latitude, pt.geolocation.longitude),
+			map: gmap,
+			animation: google.maps.Animation.DROP,
+			title: pt.storeName,
+			icon: pt.is2for1 ? "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|0000FF" : null
+		});
+
+		var contentString = '<div id="content">'+
+			'<div id="siteNotice">'+
+			'</div>'+
+			'<div id="bodyContent">'+
+			'<p><b>' + pt.storeName + '</b></p>'+
+			'<p id="storeHours">Store Hours: [STORE HOURS HERE]</p>' +
+			'<button class="dir_btn btn btn-default"\>Get Directions</button>'+
+			'</div>'+
+			'</div>';
+
+		var infoWindow = new google.maps.InfoWindow({
+			maxWidth: 320,
+			content: contentString
+		});
+
+		markerArray.push(marker);
+		infoWindowArray.push(infoWindow);
+
+		(function () {
+			mapRendered = true;
+        	var currMarker = markerArray[i];
+        	var currInfoWindow = infoWindowArray[i];
+        	google.maps.event.addListener(marker, 'click', function () {
+        		Session.set("destPos", {name: this.title, latitude: this.position.k, longitude: this.position.B});
+        		currInfoWindow.open(gmap, currMarker);
+				if (currLocation != null) {
+					currLocation.setVisible(true);
+					currActiveWindow.close();
+				}
+				currLocation = currMarker;
+				currActiveWindow = currInfoWindow;
+				currLocation.setVisible(false);
+
+				var selectedMode = google.maps.TravelMode.DRIVING; // document.getElementById("mode").value;
+
+				var request = {
+					origin: center,
+					destination: currMarker.getPosition(),
+					travelMode: selectedMode
+				};
+				directionsService.route(request, function(result, status) {
+					if (status == google.maps.DirectionsStatus.OK) {
+						directionsDisplay.setDirections(result);
+					}
+				});
+				//placeSearch(this.title, this.position.k, this.position.B);
+				Meteor.call("checkStoreHours",{storeName: this.title.split(" ")[0], lat: this.position.k, lng: this.position.B}, function(error, res){
+					console.log(res);
+					if(res){
+						var bestResult = res.data.results[0];
+						var hoursText = document.getElementById("storeHours");
+						if(bestResult && bestResult.opening_hours){
+							if(bestResult.opening_hours.open_now){
+								hoursText.innerText = "Open Now";
+								hoursText.style.color = "green";
+							}
+							else{
+								hoursText.innerText = "Closed";
+								hoursText.style.color = "red";
+							}
+						}
+						else{
+							hoursText.innerText = "Couldn't get store hours";
+						}
+						
+					}
+				});
+			});
+		})();
+  	}
+}
+
 function setMapCenter(position){
 	console.log("Setting center");
 	debugger;
@@ -250,6 +273,13 @@ Template.map.events({
 		var dest = Session.get("destPos"); //destination position
 		Router.go("directions", {}, {query:{fromLatitude: pos.latitude, toLatitude: dest.latitude, fromLongitude:pos.longitude, toLongitude:dest.longitude, storeName:dest.name}});
 	},
+
+	'change .dir_radius' : function () {
+		if (subscriptionHandle) {
+			subscriptionHandle.stop();
+		}
+		subscriptionHandle = Meteor.subscribe("stores", parseFloat(center.lat()), parseFloat(center.lng()), parseInt(document.getElementById("radius").value));
+
+		setTimeout(function () {setMarkers();}, 500);
+	}
 });
-
-

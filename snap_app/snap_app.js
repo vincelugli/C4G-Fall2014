@@ -56,8 +56,8 @@ if (Meteor.isServer) {
           var storeObj = {
             storeName: store.STORE_NAME,
             geolocation: {
-              longitude: store.longitude,
-              latitude: store.latitude
+              longitude: parseFloat(store.longitude),
+              latitude: parseFloat(store.latitude)
             },
             address1: store.ADDRESS,
             address2: store.ADDRESS2 == "Null"? "":store.ADDRESS2,
@@ -74,7 +74,13 @@ if (Meteor.isServer) {
         }
       }  
     }
-    // code to run on server at startup
+    // This is currently a work around that is expected to change.
+    Stores._ensureIndex({geolocation: "2d"});
+
+    Meteor.publish("stores", function(lat, lon, miles){
+      return Stores.find({geolocation: {$geoWithin: {$centerSphere: [[lon, lat], miles/3959]}}}); 
+    });
+    
   });
   Meteor.methods({
     checkStoreHours: function(obj){
