@@ -1,0 +1,15 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "bootstrap-united": {}
+    },
+    "packages": {
+      "bootstrap-united": {
+        "git": "https://github.com/JarnoNijboer/meteor-bootstrap-united.git",
+        "tag": "v3.1.1-1",
+        "commit": "50979b02f9e19fa9135693c5387962e6b693ca87"
+      }
+    }
+  }
+}
